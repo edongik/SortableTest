@@ -184,7 +184,7 @@ class DataFinder {
 	
 	static private String PRODUCT_FILE = "./products.txt";
 	static private String LISTINGS_FILE = "./listings.txt";
-	static private String RESULT_FILE = "./result.txt";
+	static private String RESULT_FILE = "./results.txt";
 	
 	public DataFinder(){}
 
