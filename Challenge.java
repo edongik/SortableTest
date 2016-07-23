@@ -20,7 +20,7 @@ import java.util.StringTokenizer;
 import org.json.JSONObject;
 
 /**
- * Challege Class for showing menu, result, error, etc and getting the found result
+ * Challenge Class for showing menu, result, error, etc and getting the found result
  * @author DONG IK LEE
  *
  */
@@ -64,15 +64,15 @@ public class Challenge {
 					}
     			}
         	}else{
-    			if(command.length()<3){
-    				System.out.println("\n- Please, put the word more than 2 letters");
+    			if(command.length()<2){
+    				System.out.println("\n- Please, put a word(s) more than 1 letter");
     			}else{
     				productName = command;
 
     				try {
     					//To find list from products.txt
 						findProduct(productName);
-						if(products.size() > 0) System.out.println("\n- If you want to find the product list related to product above, just put the number on left side"); 
+						if(products.size() > 0) System.out.println("\n- If you want to find the product list related to the product above, please enter the number on the left side"); 
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -94,7 +94,7 @@ public class Challenge {
 		products = DataFinder.getProductList(productName);
 		
 		if(products.size() < 1){
-			System.out.println("\n\n- There is no matching product with \""+productName+"\"");
+			System.out.println("\n\n- There is no matching product with the name of \""+productName+"\"");
 			printMenu();
 		}else{
 			
@@ -105,7 +105,7 @@ public class Challenge {
 				System.out.println(key + " : "+ value);
 			}
 			printLine();
-			System.out.println("\n- Found "+products.size()+" matching products with \""+productName+"\"");
+			System.out.println("\n- Found "+products.size()+" matching products with the name of \""+productName+"\"");
 		}
 	}
 	
@@ -125,15 +125,15 @@ public class Challenge {
 			listings = DataFinder.getListingsList(productName);
 			
 			if(listings.size() < 1){
-				System.out.println("\n- There is no matching product list with \""+productName+"\"");
-				System.out.println("- Try again!");
+				System.out.println("\n- There is no matching product list with the name of \""+productName+"\"");
+				System.out.println("- Please try again!");
 			}else{
 				printLine();
 				for(String list : listings){
 					System.out.println(list);
 				}
 				printLine();
-				System.out.println("\n- Found "+listings.size()+" matching lists related to \""+productName+"\"");
+				System.out.println("\n- Found "+listings.size()+" matching lists related to the name of \""+productName+"\"");
 				
 				DataFinder.makeResultFile(productName, listings);
 			}
@@ -144,8 +144,8 @@ public class Challenge {
 	
 	
 	public static void printMenu(){
-		System.out.println("\n- If you want to quit this program, just type in 'quit'");
-        System.out.println("- If you want to find the product, please put the product name in :");
+		System.out.println("\n- If you want to quit this program, please enter 'quit'");
+        System.out.println("- If you want to find the product, please put the product(s)' name in :");
 	}
 	
 	public static void printLine(){
@@ -153,7 +153,7 @@ public class Challenge {
 	}
 	
 	public static void printError(){
-		System.out.println("\n- Error! put the product name or the number on the left of the product list found");
+		System.out.println("\n- Error! Put the product name or the number on the left of the product(s)' list found");
 	}	
 	
 	public static void printStart(){
