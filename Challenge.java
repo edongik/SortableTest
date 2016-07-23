@@ -27,7 +27,7 @@ import org.json.JSONObject;
 public class Challenge {
 	
 	public static Map<String, Object> products  = new LinkedHashMap<String, Object>();
-	public static ArrayList<String> listings = new ArrayList<String>();
+	public static ArrayList<Listing> listings = new ArrayList<Listing>();
 	
 	public static void main(String[] args){
 		
@@ -129,8 +129,8 @@ public class Challenge {
 				System.out.println("- Please try again!");
 			}else{
 				printLine();
-				for(String list : listings){
-					System.out.println(list);
+				for(Listing list : listings){
+					System.out.println(list.getTitle());
 				}
 				printLine();
 				System.out.println("\n- Found "+listings.size()+" matching lists related to the name of \""+productName+"\"");
@@ -230,22 +230,32 @@ class DataFinder {
 	 * @return
 	 * @throws IOException
 	 */
-	public static ArrayList<String> getListingsList(String productName) throws IOException {
-		ArrayList<String> findListings = new ArrayList<String>();
+	public static ArrayList<Listing> getListingsList(String productName) throws IOException {
+		ArrayList<Listing> findListings = new ArrayList<Listing>();
 		
 		try { 
 	        InputStream in = new FileInputStream(new File(LISTINGS_FILE));
 	        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 	        
 	        String line;
+	        Listing l;
 	        while ((line = reader.readLine()) != null) {
+	        	l = new Listing();
 	        	JSONObject jsonObj = new JSONObject(line);
 	            String title = jsonObj.getString ( "title" );
+	            String manufacturer = jsonObj.getString ( "manufacturer" );
+	            String currency = jsonObj.getString ( "currency" );
+	            String price = jsonObj.getString ( "price" );
 	            
-	            ArrayList<String> list = stringTokenizerToArrayList(productName, "_");
+	            ArrayList<String> arrayProductName = stringTokenizerToArrayList(productName, "_");
 	            
-	            if(compareTitleName(list, title)){
-	            	findListings.add(title);
+	            if(compareTitleName(arrayProductName, title)){
+	            	l.setTitle(title);
+	            	l.setManufacturer(manufacturer);
+	            	l.setCurrency(currency);
+	            	l.setPrice(price);
+	            	
+	            	findListings.add(l);
             	}
 	        }
         } catch (FileNotFoundException e) {
@@ -308,7 +318,7 @@ class DataFinder {
 	 * @param list
 	 * @throws IOException
 	 */
-	public static void makeResultFile(String productName, ArrayList<String> list)throws IOException{
+	public static void makeResultFile(String productName, ArrayList<Listing> list)throws IOException{
 	    
 	    FileWriter fw = new FileWriter(new File(RESULT_FILE));
 
@@ -331,7 +341,7 @@ class DataFinder {
 	 * @return
 	 * @throws IOException
 	 */
-	public static JSONObject makeResultJson(String productName, ArrayList<String> list) throws IOException {
+	public static JSONObject makeResultJson(String productName, ArrayList<Listing> list) throws IOException {
         
         JSONObject obj = new JSONObject();
         obj.put("product_name",productName);
@@ -350,6 +360,5 @@ class DataFinder {
 		return list;
 	}		
 }	
-
 
 

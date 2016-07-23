@@ -1,2 +1,3 @@
-javac -cp json.jar Challenge.java
+#!/bin/bash
+javac -cp json.jar *.java
 java -classpath .;json.jar Challenge
