@@ -1,7 +1,8 @@
 /**
  * Title : Challenge for Test
  * Author : Dong-Ik Lee
- * Date : July 25, 2016
+ * Create Date : July 25, 2016
+ * Update Date : August 8, 2016
  */
 import java.io.BufferedReader;
 import java.io.File;
@@ -24,14 +25,10 @@ import org.json.JSONObject;
  */
 public class Challenge {
 	
-	public static ArrayList<String> products  = new ArrayList<String>();
-	public static ArrayList<Listing> listings = new ArrayList<Listing>();
-	
 	public static void main(String[] args){
 		
 		String command = "";
 		String productName = "";
-		String productNumber = "";
 		
 		Scanner sc = new Scanner(System.in);
 		
@@ -68,26 +65,29 @@ public class Challenge {
 	}
 	
 	/**
-	 * To show the product name found 
+	 * To show the product name found and find the list
 	 * @param productName
 	 * @throws IOException
 	 */
 	public static void findProduct(String productName)throws IOException{
-		//To find the product list contain product name from user's input
-		products = DataFinder.getProductList(productName);
 		ArrayList<JSONObject> resultList = new ArrayList<JSONObject>();
+		ArrayList<String> products  = new ArrayList<String>();
+		
+		products = DataFinder.getProductList(productName);
 		
 		if(products.size() < 1){
 			System.out.println("\n\n- There is no matching product with the name of \""+productName+"\"");
 		}else{
+			System.out.println("\n- Found "+products.size()+" matching products with the name of \""+productName+"\"");
 			
 			for (String product : products) {
+				//To find list from product list
 				JSONObject obj = findListing(product);
 				resultList.add(obj);
 			}
-			System.out.println("\n- Found "+products.size()+" matching products with the name of \""+productName+"\"");
+			
 		}
-		
+		//To make result file
 		DataFinder.makeResultFile(resultList);
 		
 		printMenu();
@@ -99,27 +99,20 @@ public class Challenge {
 	 * @throws IOException
 	 */
 	public static JSONObject findListing(String productName)throws IOException{
-		JSONObject returnObj = new JSONObject();
+		ArrayList<Listing> listings = new ArrayList<Listing>();
+		JSONObject resultObj = new JSONObject();
 		
 		if(productName!=null){
 			System.out.println("\n- product name : \""+productName+"\"");
 			
 			//To find the list contain the product name from user's input
 			listings = DataFinder.getListingsList(productName);
-			
-			if(listings.size() < 1){
-				returnObj = DataFinder.makeResultJson(productName, listings);
-			}else{
-				
-				for(Listing list : listings){
-					System.out.println(list.getTitle());
-				}
-				returnObj = DataFinder.makeResultJson(productName, listings);
-			}
+			//To get json type result
+			resultObj = DataFinder.makeResultJson(productName, listings);			
 		}else{
 			printError();
 		}
-		return returnObj;
+		return resultObj;
 	}
 	
 	public static void printMenu(){
@@ -292,19 +285,13 @@ class DataFinder {
 	}
 	
 	/**
-	 * To make resut.txt from the result found
+	 * To make results.txt from the result found
 	 * @param productName
 	 * @param list
 	 * @throws IOException
 	 */
 	public static void makeResultFile(ArrayList<JSONObject> resultList)throws IOException{
 	    
-		
-		for(JSONObject o:resultList){
-			System.out.println(o);
-		}
-		
-		
 	    FileWriter fw = new FileWriter(new File(RESULT_FILE));
 
 	    try {
