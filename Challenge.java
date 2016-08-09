@@ -32,6 +32,7 @@ public class Challenge {
 		
 		Scanner sc = new Scanner(System.in);
 		
+		makeArrayList();
 		printStart();
         printMenu();
         
@@ -78,14 +79,20 @@ public class Challenge {
 		if(products.size() < 1){
 			System.out.println("\n\n- There is no matching product with the name of \""+productName+"\"");
 		}else{
-			System.out.println("\n- Found "+products.size()+" matching products with the name of \""+productName+"\"");
+			
+			if(productName.trim().equalsIgnoreCase("ALL")){
+				System.out.println("\n- Found "+products.size()+" products ");
+			}else{
+				System.out.println("\n- Found "+products.size()+" matching products with the name of \""+productName+"\"");
+			}
+			
+			System.out.println("=== Please, wait until finding the list of product...");
 			
 			for (String product : products) {
 				//To find list from product list
 				JSONObject obj = findListing(product);
 				resultList.add(obj);
 			}
-			
 		}
 		//To make result file
 		DataFinder.makeResultFile(resultList);
@@ -103,8 +110,6 @@ public class Challenge {
 		JSONObject resultObj = new JSONObject();
 		
 		if(productName!=null){
-			System.out.println("\n- product name : \""+productName+"\"");
-			
 			//To find the list contain the product name from user's input
 			listings = DataFinder.getListingsList(productName);
 			//To get json type result
@@ -115,8 +120,22 @@ public class Challenge {
 		return resultObj;
 	}
 	
+	/**
+	 * To make arraylist from listings.txt and products.txt
+	 */
+	public static void makeArrayList(){
+		try {
+			DataFinder.makeListingsList();
+			DataFinder.makeProductsList();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	public static void printMenu(){
 		System.out.println("\n- If you want to quit this program, please enter 'quit'");
+		System.out.println("- If you want to find all of product, please enter 'all'");
         System.out.println("- If you want to find the product, please put the product(s)' name in :");
 	}
 	
@@ -154,9 +173,17 @@ public class Challenge {
  */
 class DataFinder {
 	
-	static private String PRODUCT_FILE = "./products.txt";
-	static private String LISTINGS_FILE = "./listings.txt";
-	static private String RESULT_FILE = "./results.txt";
+//	static private String PRODUCT_FILE = "./products.txt";
+//	static private String LISTINGS_FILE = "./listings.txt";
+//	static private String RESULT_FILE = "./results.txt";
+	
+	static private String PRODUCT_FILE = "C:\\Sortable\\products.txt";
+	static private String LISTINGS_FILE = "C:\\Sortable\\listings.txt";
+	static private String RESULT_FILE = "C:\\Sortable\\results.txt";	
+	
+	
+	static private ArrayList<Listing> ARRAYOFLISTING = new ArrayList<Listing>();
+	static private ArrayList<Product> ARRAYOFPRODUCT = new ArrayList<Product>();
 	
 	public DataFinder(){}
 
@@ -170,26 +197,15 @@ class DataFinder {
 		ArrayList<String> findProducts = new ArrayList<String>();
 		
 		try { 
-	        InputStream in = new FileInputStream(new File(PRODUCT_FILE));
-	        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-	        
-	        int pid=1000;
-	        String line;
-	        while ((line = reader.readLine()) != null) {
-	            //out.append(line);
-	        	JSONObject jsonObj = new JSONObject(line);
-	            String productNameFromFile = jsonObj.getString ("product_name");
+	        for(Product product: ARRAYOFPRODUCT){
 	            
 	            ArrayList<String> list = stringTokenizerToArrayList(productName, " ");
 	            
-	            if(compareProductName(list, productNameFromFile)){
-	        		pid++;
-	        		findProducts.add(productNameFromFile);
+	            if(compareProductName(list, product.getProductName()) || productName.trim().equalsIgnoreCase("ALL")){
+	        		findProducts.add(product.getProductName());
             	}
 	        }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         } 
 
@@ -206,6 +222,42 @@ class DataFinder {
 		ArrayList<Listing> findListings = new ArrayList<Listing>();
 		
 		try { 
+	        Listing l;
+	        for(Listing listing: ARRAYOFLISTING){
+	        	l = new Listing();
+	        	
+	            String title = listing.getTitle();
+	            
+	            ArrayList<String> arrayProductName = stringTokenizerToArrayList(productName, "_");
+	            
+	            if(compareTitleName(arrayProductName, title)){
+	            	System.out.println("... Found the list with the name of "+productName);
+	            	l.setTitle(title);
+	            	l.setManufacturer(listing.getManufacturer());
+	            	l.setCurrency(listing.getCurrency());
+	            	l.setPrice(listing.getPrice());
+	            	
+	            	findListings.add(l);
+            	}
+	        }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } 
+
+		return findListings;
+	}
+	
+
+	/**
+	 * To make list array from file
+	 * @param productName
+	 * @return
+	 * @throws IOException
+	 */
+	public static void makeListingsList() throws IOException {
+		
+		try { 
 	        InputStream in = new FileInputStream(new File(LISTINGS_FILE));
 	        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 	        
@@ -214,30 +266,62 @@ class DataFinder {
 	        while ((line = reader.readLine()) != null) {
 	        	l = new Listing();
 	        	JSONObject jsonObj = new JSONObject(line);
-	            String title = jsonObj.getString ( "title" );
-	            String manufacturer = jsonObj.getString ( "manufacturer" );
-	            String currency = jsonObj.getString ( "currency" );
-	            String price = jsonObj.getString ( "price" );
+	            String title = jsonObj.optString ( "title" );
+	            String manufacturer = jsonObj.optString ( "manufacturer" );
+	            String currency = jsonObj.optString ( "currency" );
+	            String price = jsonObj.optString ( "price" );
 	            
-	            ArrayList<String> arrayProductName = stringTokenizerToArrayList(productName, "_");
-	            
-	            if(compareTitleName(arrayProductName, title)){
-	            	l.setTitle(title);
-	            	l.setManufacturer(manufacturer);
-	            	l.setCurrency(currency);
-	            	l.setPrice(price);
-	            	
-	            	findListings.add(l);
-            	}
+            	l.setTitle(title);
+            	l.setManufacturer(manufacturer);
+            	l.setCurrency(currency);
+            	l.setPrice(price);
+            	
+            	ARRAYOFLISTING.add(l);
 	        }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         } 
-
-		return findListings;
-	}
+	}	
+	
+	/**
+	 * To make product array from file
+	 * @param productName
+	 * @return
+	 * @throws IOException
+	 */
+	public static void makeProductsList() throws IOException {
+		
+		try { 
+	        InputStream in = new FileInputStream(new File(PRODUCT_FILE));
+	        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+	        
+	        String line;
+	        Product p;
+	        while ((line = reader.readLine()) != null) {
+	        	p = new Product();
+	        	JSONObject jsonObj = new JSONObject(line);
+	            String productName = jsonObj.optString ( "product_name" );
+	            String manufacturer = jsonObj.optString ( "manufacturer" );
+	            String model = jsonObj.optString ( "model" );
+	            String family = jsonObj.optString("family" );
+	            String announcedDate = jsonObj.optString ( "announced-date" );
+	            
+            	p.setProductName(productName);
+            	p.setManufacturer(manufacturer);
+            	p.setModel(model);
+            	p.setFamily(family);
+            	p.setAnnouncedDate(announcedDate);
+            	
+            	ARRAYOFPRODUCT.add(p);
+	        }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } 
+	}	
 	
 	/**
 	 * compare the inserted string with product name  
@@ -304,6 +388,7 @@ class DataFinder {
 	    }finally {
 	    	fw.flush();
 	    	fw.close();
+	    	System.out.println("=== Creating file of results.txt is done!");
 	    } 
 	}
 	
