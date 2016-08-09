@@ -173,14 +173,9 @@ public class Challenge {
  */
 class DataFinder {
 	
-//	static private String PRODUCT_FILE = "./products.txt";
-//	static private String LISTINGS_FILE = "./listings.txt";
-//	static private String RESULT_FILE = "./results.txt";
-	
-	static private String PRODUCT_FILE = "C:\\Sortable\\products.txt";
-	static private String LISTINGS_FILE = "C:\\Sortable\\listings.txt";
-	static private String RESULT_FILE = "C:\\Sortable\\results.txt";	
-	
+	static private String PRODUCT_FILE = "./products.txt";
+	static private String LISTINGS_FILE = "./listings.txt";
+	static private String RESULT_FILE = "./results.txt";
 	
 	static private ArrayList<Listing> ARRAYOFLISTING = new ArrayList<Listing>();
 	static private ArrayList<Product> ARRAYOFPRODUCT = new ArrayList<Product>();
