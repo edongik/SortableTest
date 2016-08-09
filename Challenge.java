@@ -12,8 +12,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Scanner;
 import java.util.StringTokenizer;
 
@@ -26,7 +24,7 @@ import org.json.JSONObject;
  */
 public class Challenge {
 	
-	public static Map<String, Object> products  = new LinkedHashMap<String, Object>();
+	public static ArrayList<String> products  = new ArrayList<String>();
 	public static ArrayList<Listing> listings = new ArrayList<Listing>();
 	
 	public static void main(String[] args){
@@ -48,21 +46,6 @@ public class Challenge {
         		printMenu();
         	}else if(command.trim().equalsIgnoreCase("QUIT")){
         		break;
-        	//if command is numeric, then find list in listing found
-        	}else if(isNumeric(command)){
-    			if(command.length() != 4){
-    				printError();
-    			}else{
-    				productNumber = command;
-					
-    				try {
-    					//To find list from listings.txt
-						findListing(productNumber);
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-    			}
         	}else{
     			if(command.length()<2){
     				System.out.println("\n- Please, put a word(s) more than 1 letter");
@@ -72,7 +55,7 @@ public class Challenge {
     				try {
     					//To find list from products.txt
 						findProduct(productName);
-						if(products.size() > 0) System.out.println("\n- If you want to find the product list related to the product above, please enter the number on the left side"); 
+						
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -92,21 +75,22 @@ public class Challenge {
 	public static void findProduct(String productName)throws IOException{
 		//To find the product list contain product name from user's input
 		products = DataFinder.getProductList(productName);
+		ArrayList<JSONObject> resultList = new ArrayList<JSONObject>();
 		
 		if(products.size() < 1){
 			System.out.println("\n\n- There is no matching product with the name of \""+productName+"\"");
-			printMenu();
 		}else{
 			
-			printLine();
-			for (Map.Entry<String, Object> entry : products.entrySet()) {
-				String key = entry.getKey();
-				Object value = entry.getValue();
-				System.out.println(key + " : "+ value);
+			for (String product : products) {
+				JSONObject obj = findListing(product);
+				resultList.add(obj);
 			}
-			printLine();
 			System.out.println("\n- Found "+products.size()+" matching products with the name of \""+productName+"\"");
 		}
+		
+		DataFinder.makeResultFile(resultList);
+		
+		printMenu();
 	}
 	
 	/**
@@ -114,34 +98,29 @@ public class Challenge {
 	 * @param productNumber
 	 * @throws IOException
 	 */
-	public static void findListing(String productNumber)throws IOException{
-		//to try to matching from Hashmap 
-		String productName = (String) products.get(productNumber);
+	public static JSONObject findListing(String productName)throws IOException{
+		JSONObject returnObj = new JSONObject();
 		
 		if(productName!=null){
-			System.out.println("\n- Your selected product name : \""+productName+"\"");
+			System.out.println("\n- product name : \""+productName+"\"");
 			
 			//To find the list contain the product name from user's input
 			listings = DataFinder.getListingsList(productName);
 			
 			if(listings.size() < 1){
-				System.out.println("\n- There is no matching product list with the name of \""+productName+"\"");
-				System.out.println("- Please try again!");
+				returnObj = DataFinder.makeResultJson(productName, listings);
 			}else{
-				printLine();
+				
 				for(Listing list : listings){
 					System.out.println(list.getTitle());
 				}
-				printLine();
-				System.out.println("\n- Found "+listings.size()+" matching lists related to the name of \""+productName+"\"");
-				
-				DataFinder.makeResultFile(productName, listings);
+				returnObj = DataFinder.makeResultJson(productName, listings);
 			}
 		}else{
 			printError();
 		}
+		return returnObj;
 	}
-	
 	
 	public static void printMenu(){
 		System.out.println("\n- If you want to quit this program, please enter 'quit'");
@@ -153,7 +132,7 @@ public class Challenge {
 	}
 	
 	public static void printError(){
-		System.out.println("\n- Error! Put the product name or the number on the left of the product(s)' list found");
+		System.out.println("\n- Error! Put the product name");
 	}	
 	
 	public static void printStart(){
@@ -194,8 +173,8 @@ class DataFinder {
 	 * @return
 	 * @throws IOException
 	 */
-	public static Map<String, Object> getProductList(String productName) throws IOException {
-		Map<String, Object> findProducts = new LinkedHashMap<String, Object>();
+	public static ArrayList<String> getProductList(String productName) throws IOException {
+		ArrayList<String> findProducts = new ArrayList<String>();
 		
 		try { 
 	        InputStream in = new FileInputStream(new File(PRODUCT_FILE));
@@ -212,7 +191,7 @@ class DataFinder {
 	            
 	            if(compareProductName(list, productNameFromFile)){
 	        		pid++;
-	        		findProducts.put(String.valueOf(pid), productNameFromFile);
+	        		findProducts.add(productNameFromFile);
             	}
 	        }
         } catch (FileNotFoundException e) {
@@ -318,14 +297,21 @@ class DataFinder {
 	 * @param list
 	 * @throws IOException
 	 */
-	public static void makeResultFile(String productName, ArrayList<Listing> list)throws IOException{
+	public static void makeResultFile(ArrayList<JSONObject> resultList)throws IOException{
 	    
+		
+		for(JSONObject o:resultList){
+			System.out.println(o);
+		}
+		
+		
 	    FileWriter fw = new FileWriter(new File(RESULT_FILE));
 
 	    try {
-	        JSONObject obj = makeResultJson(productName, list);
-			fw.write(obj.toString());
-			
+	    	for(JSONObject jo:resultList){
+	    		fw.write(jo.toString());
+	    		fw.write(System.getProperty( "line.separator" ));
+	    	}
 	    }catch (IOException ioe) {
 	    	 ioe.printStackTrace();
 	    }finally {
